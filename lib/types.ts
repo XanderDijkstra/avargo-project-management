@@ -9,13 +9,9 @@ export type Service =
 export type PipelineStage =
   | "henvisning-mottatt"
   | "scoping"
-  | "tilbud-sendt"
-  | "akseptert"
   | "bygging"
-  | "lansert"
   | "lopende-drift"
-  | "avsluttet"
-  | "pauset";
+  | "avsluttet";
 
 export type Source = "Riktig Regnskap" | "Direct" | "Referral" | "Other";
 

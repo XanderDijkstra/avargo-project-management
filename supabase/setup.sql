@@ -4,6 +4,30 @@
 -- a new table is added.
 
 ------------------------------------------------------------
+-- 0. Migrate any existing rows that are on removed stages.
+--    The app now uses only: henvisning-mottatt, scoping, bygging,
+--    lopende-drift, avsluttet. Old stages are mapped to the closest
+--    kept stage. Safe to run multiple times.
+------------------------------------------------------------
+do $$
+begin
+  if to_regclass('public.engagements') is not null then
+    update public.engagements
+      set data = jsonb_set(data, '{stage}', '"scoping"', false)
+      where data->>'stage' = 'tilbud-sendt';
+    update public.engagements
+      set data = jsonb_set(data, '{stage}', '"bygging"', false)
+      where data->>'stage' = 'akseptert';
+    update public.engagements
+      set data = jsonb_set(data, '{stage}', '"lopende-drift"', false)
+      where data->>'stage' = 'lansert';
+    update public.engagements
+      set data = jsonb_set(data, '{stage}', '"avsluttet"', false)
+      where data->>'stage' = 'pauset';
+  end if;
+end$$;
+
+------------------------------------------------------------
 -- 1. Clients (the legacy name is 'engagements' — left as-is
 --    intentionally so deployed code keeps working).
 ------------------------------------------------------------
