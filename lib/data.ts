@@ -1,7 +1,5 @@
 import "server-only";
 
-import { promises as fs } from "node:fs";
-import path from "node:path";
 import { randomUUID } from "node:crypto";
 
 import type {
@@ -17,61 +15,62 @@ import type {
 } from "./types";
 import { slugify } from "./utils";
 import { TASK_TEMPLATES } from "./task-templates";
+import { ENGAGEMENTS_TABLE, getSupabase } from "./supabase";
 
-const DATA_DIR = path.join(process.cwd(), "data", "engagements");
+type Row = {
+  slug: string;
+  data: Engagement;
+  updated_at: string;
+};
 
-async function ensureDir() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
+function normalize(engagement: Engagement): Engagement {
+  // Backfill optional arrays so legacy rows don't crash UI code.
+  return {
+    ...engagement,
+    notes: engagement.notes ?? [],
+    links: engagement.links ?? [],
+    stageHistory: engagement.stageHistory ?? [],
+    tasks: engagement.tasks ?? [],
+    submissions: engagement.submissions ?? [],
+  };
 }
 
-function filePathFor(slug: string) {
-  return path.join(DATA_DIR, `${slug}.json`);
+async function readEngagement(slug: string): Promise<Engagement | null> {
+  const { data, error } = await getSupabase()
+    .from(ENGAGEMENTS_TABLE)
+    .select("slug,data,updated_at")
+    .eq("slug", slug)
+    .maybeSingle<Row>();
+
+  if (error) throw error;
+  if (!data) return null;
+  return normalize(data.data);
 }
 
-async function readEngagementFile(slug: string): Promise<Engagement | null> {
-  try {
-    const raw = await fs.readFile(filePathFor(slug), "utf8");
-    const parsed = JSON.parse(raw) as Engagement;
-    // Backfill v0.2 fields for engagements created under v0.1
-    if (!Array.isArray(parsed.tasks)) parsed.tasks = [];
-    if (!Array.isArray(parsed.submissions)) parsed.submissions = [];
-    return parsed;
-  } catch (err: unknown) {
-    if (
-      err &&
-      typeof err === "object" &&
-      "code" in err &&
-      (err as { code: string }).code === "ENOENT"
-    ) {
-      return null;
-    }
-    throw err;
-  }
-}
-
-async function writeEngagementAtomic(engagement: Engagement) {
-  await ensureDir();
-  const target = filePathFor(engagement.slug);
-  const tmp = `${target}.${randomUUID()}.tmp`;
-  await fs.writeFile(tmp, JSON.stringify(engagement, null, 2), "utf8");
-  await fs.rename(tmp, target);
+async function writeEngagement(engagement: Engagement): Promise<void> {
+  const row: Row = {
+    slug: engagement.slug,
+    data: engagement,
+    updated_at: engagement.updatedAt,
+  };
+  const { error } = await getSupabase()
+    .from(ENGAGEMENTS_TABLE)
+    .upsert(row, { onConflict: "slug" });
+  if (error) throw error;
 }
 
 export async function listEngagements(): Promise<Engagement[]> {
-  await ensureDir();
-  const entries = await fs.readdir(DATA_DIR);
-  const slugs = entries
-    .filter((name) => name.endsWith(".json"))
-    .map((name) => name.replace(/\.json$/, ""));
+  const { data, error } = await getSupabase()
+    .from(ENGAGEMENTS_TABLE)
+    .select("slug,data,updated_at")
+    .order("updated_at", { ascending: false });
 
-  const engagements = await Promise.all(
-    slugs.map((slug) => readEngagementFile(slug)),
-  );
-  return engagements.filter((e): e is Engagement => e !== null);
+  if (error) throw error;
+  return (data ?? []).map((r) => normalize((r as Row).data));
 }
 
 export async function getEngagement(slug: string): Promise<Engagement | null> {
-  return readEngagementFile(slug);
+  return readEngagement(slug);
 }
 
 export async function createEngagement(
@@ -80,10 +79,11 @@ export async function createEngagement(
   const baseSlug = slugify(input.companyName);
   if (!baseSlug) throw new Error("Ugyldig selskapsnavn");
 
-  // If slug exists, append numeric suffix
+  // Find an available slug. Race-safe enough for an internal tool: the upsert
+  // is keyed on slug, so a duplicate would error and we'd just retry.
   let slug = baseSlug;
   let counter = 2;
-  while ((await readEngagementFile(slug)) !== null) {
+  while ((await readEngagement(slug)) !== null) {
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
@@ -112,7 +112,7 @@ export async function createEngagement(
     updatedAt: now,
   };
 
-  await writeEngagementAtomic(engagement);
+  await writeEngagement(engagement);
   return engagement;
 }
 
@@ -120,7 +120,7 @@ export async function updateEngagement(
   slug: string,
   patch: Partial<Engagement>,
 ): Promise<Engagement> {
-  const current = await readEngagementFile(slug);
+  const current = await readEngagement(slug);
   if (!current) throw new Error("Engasjement ikke funnet");
 
   const stageChanged = patch.stage && patch.stage !== current.stage;
@@ -141,7 +141,7 @@ export async function updateEngagement(
     ];
   }
 
-  await writeEngagementAtomic(next);
+  await writeEngagement(next);
   return next;
 }
 
@@ -149,25 +149,22 @@ export async function addNote(
   slug: string,
   content: string,
 ): Promise<Engagement> {
-  const current = await readEngagementFile(slug);
+  const current = await readEngagement(slug);
   if (!current) throw new Error("Engasjement ikke funnet");
 
   const now = new Date().toISOString();
   const next: Engagement = {
     ...current,
-    notes: [
-      ...current.notes,
-      { id: randomUUID(), date: now, content },
-    ],
+    notes: [...current.notes, { id: randomUUID(), date: now, content }],
     updatedAt: now,
   };
 
-  await writeEngagementAtomic(next);
+  await writeEngagement(next);
   return next;
 }
 
 export async function addLink(slug: string, link: Link): Promise<Engagement> {
-  const current = await readEngagementFile(slug);
+  const current = await readEngagement(slug);
   if (!current) throw new Error("Engasjement ikke funnet");
 
   const next: Engagement = {
@@ -176,7 +173,7 @@ export async function addLink(slug: string, link: Link): Promise<Engagement> {
     updatedAt: new Date().toISOString(),
   };
 
-  await writeEngagementAtomic(next);
+  await writeEngagement(next);
   return next;
 }
 
@@ -184,7 +181,7 @@ export async function removeLink(
   slug: string,
   linkLabel: string,
 ): Promise<Engagement> {
-  const current = await readEngagementFile(slug);
+  const current = await readEngagement(slug);
   if (!current) throw new Error("Engasjement ikke funnet");
 
   const next: Engagement = {
@@ -193,7 +190,7 @@ export async function removeLink(
     updatedAt: new Date().toISOString(),
   };
 
-  await writeEngagementAtomic(next);
+  await writeEngagement(next);
   return next;
 }
 
@@ -201,7 +198,7 @@ export async function changeStage(
   slug: string,
   newStage: PipelineStage,
 ): Promise<Engagement> {
-  const current = await readEngagementFile(slug);
+  const current = await readEngagement(slug);
   if (!current) throw new Error("Engasjement ikke funnet");
 
   if (current.stage === newStage) return current;
@@ -224,12 +221,10 @@ export async function changeStage(
     next.tasks = [...next.tasks, ...generated];
   }
 
-  await writeEngagementAtomic(next);
+  await writeEngagement(next);
   return next;
 }
 
-// Generate tasks from templates, skipping any that already exist by
-// exact title+workstream match. Idempotent for re-fires.
 function generateTasksFromTemplates(
   services: Service[],
   existingTasks: Task[],
@@ -265,7 +260,7 @@ export async function addTask(
   slug: string,
   input: { title: string; workstream: Workstream; description?: string },
 ): Promise<Engagement> {
-  const current = await readEngagementFile(slug);
+  const current = await readEngagement(slug);
   if (!current) throw new Error("Engasjement ikke funnet");
 
   const now = new Date().toISOString();
@@ -285,7 +280,7 @@ export async function addTask(
     updatedAt: now,
   };
 
-  await writeEngagementAtomic(next);
+  await writeEngagement(next);
   return next;
 }
 
@@ -294,7 +289,7 @@ export async function updateTaskStatus(
   taskId: string,
   status: TaskStatus,
 ): Promise<Engagement> {
-  const current = await readEngagementFile(slug);
+  const current = await readEngagement(slug);
   if (!current) throw new Error("Engasjement ikke funnet");
 
   const now = new Date().toISOString();
@@ -312,7 +307,7 @@ export async function updateTaskStatus(
     updatedAt: now,
   };
 
-  await writeEngagementAtomic(next);
+  await writeEngagement(next);
   return next;
 }
 
@@ -320,7 +315,7 @@ export async function deleteTask(
   slug: string,
   taskId: string,
 ): Promise<Engagement> {
-  const current = await readEngagementFile(slug);
+  const current = await readEngagement(slug);
   if (!current) throw new Error("Engasjement ikke funnet");
 
   const next: Engagement = {
@@ -329,14 +324,14 @@ export async function deleteTask(
     updatedAt: new Date().toISOString(),
   };
 
-  await writeEngagementAtomic(next);
+  await writeEngagement(next);
   return next;
 }
 
 export async function regenerateTemplateTasks(
   slug: string,
 ): Promise<Engagement> {
-  const current = await readEngagementFile(slug);
+  const current = await readEngagement(slug);
   if (!current) throw new Error("Engasjement ikke funnet");
 
   const generated = generateTasksFromTemplates(current.services, current.tasks);
@@ -348,7 +343,7 @@ export async function regenerateTemplateTasks(
     updatedAt: new Date().toISOString(),
   };
 
-  await writeEngagementAtomic(next);
+  await writeEngagement(next);
   return next;
 }
 
@@ -359,7 +354,7 @@ export async function addSubmission(
     submittedAt?: string;
   },
 ): Promise<Engagement> {
-  const current = await readEngagementFile(slug);
+  const current = await readEngagement(slug);
   if (!current) throw new Error("Engasjement ikke funnet");
 
   const now = new Date().toISOString();
@@ -377,6 +372,6 @@ export async function addSubmission(
     updatedAt: now,
   };
 
-  await writeEngagementAtomic(next);
+  await writeEngagement(next);
   return next;
 }

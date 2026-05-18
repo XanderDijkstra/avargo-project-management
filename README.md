@@ -12,6 +12,7 @@ to the "Bygging" stage, and a markdown-based SOPs tab.
 
 ```bash
 pnpm install
+cp .env.example .env.local   # then fill in your Supabase keys
 pnpm dev
 ```
 
@@ -23,23 +24,35 @@ A production build is verified with:
 pnpm build
 ```
 
+## Deploying to Vercel
+
+1. Push to GitHub and import the repo into Vercel.
+2. In Vercel **Settings → Environment Variables**, add:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY` (server-only — never `NEXT_PUBLIC_…`)
+3. In Supabase: create a project, open **SQL Editor**, paste and run
+   `supabase/setup.sql`. This creates the `engagements` table, the index,
+   enables RLS, and seeds Hjørnekontor.
+4. Trigger a deployment. The SOPs markdown ships with the build via
+   `outputFileTracingIncludes` in `next.config.js`.
+
 ## Stack
 
 - Next.js 15 (App Router) + TypeScript
 - Tailwind CSS
 - `@dnd-kit` for kanban drag-and-drop
 - `react-markdown` + `gray-matter` for SOPs
-- JSON file storage in `/data/engagements/*.json` (no database)
+- **Supabase Postgres** (single `engagements` table, JSONB column) for
+  engagement state. SOPs remain as in-repo markdown.
 
 ## Data model
 
-The single CRM entity is an `Engagement` (one engagement = one card on the
-kanban). Each engagement is stored as a JSON file in `/data/engagements/`.
-The shape lives in `lib/types.ts` and includes contact info, source,
-services, pipeline stage, optional fees/budgets, an append-only notes log,
-external links, a stage transition history, an array of `Task`s (some
-auto-generated from templates), and an array of immutable `FormSubmission`s.
-All mutations go through `lib/data.ts`, which writes files atomically.
+The single CRM entity is an `Engagement` (one engagement = one row in
+Supabase = one card on the kanban). The `engagements` table has three
+columns: `slug` (primary key), `data` (JSONB containing the full
+`Engagement` shape from `lib/types.ts`), and `updated_at` (for sort/index).
+All mutations go through `lib/data.ts`, which read-modify-writes the JSONB
+blob. SOPs live as markdown files in `/sops`.
 
 User-facing copy is in Norwegian; code/identifiers are in English.
 
@@ -109,7 +122,6 @@ Included:
 **Not** included (deliberately deferred):
 
 - Authentication
-- A database (JSON files only)
 - Email or webhook notifications on form submission
 - Form-builder UI (form schemas live in code)
 - SOP editor in the app
