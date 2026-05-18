@@ -6,11 +6,17 @@ import { randomUUID } from "node:crypto";
 
 import type {
   Engagement,
+  FormSubmission,
   Link,
   NewEngagementInput,
   PipelineStage,
+  Service,
+  Task,
+  TaskStatus,
+  Workstream,
 } from "./types";
 import { slugify } from "./utils";
+import { TASK_TEMPLATES } from "./task-templates";
 
 const DATA_DIR = path.join(process.cwd(), "data", "engagements");
 
@@ -200,6 +206,7 @@ export async function changeStage(
 
   if (current.stage === newStage) return current;
 
+  const previousStage = current.stage;
   const now = new Date().toISOString();
   const next: Engagement = {
     ...current,
@@ -208,6 +215,165 @@ export async function changeStage(
       ...current.stageHistory,
       { stage: newStage, enteredAt: now },
     ],
+    updatedAt: now,
+  };
+
+  // Fire template tasks only on transition INTO "bygging"
+  if (newStage === "bygging" && previousStage !== "bygging") {
+    const generated = generateTasksFromTemplates(next.services, next.tasks);
+    next.tasks = [...next.tasks, ...generated];
+  }
+
+  await writeEngagementAtomic(next);
+  return next;
+}
+
+// Generate tasks from templates, skipping any that already exist by
+// exact title+workstream match. Idempotent for re-fires.
+function generateTasksFromTemplates(
+  services: Service[],
+  existingTasks: Task[],
+): Task[] {
+  const existingKeys = new Set(
+    existingTasks
+      .filter((t) => t.fromTemplate)
+      .map((t) => `${t.workstream}:${t.title}`),
+  );
+
+  const out: Task[] = [];
+  for (const service of services) {
+    const templates = TASK_TEMPLATES[service] ?? [];
+    for (const tmpl of templates) {
+      const key = `${tmpl.workstream}:${tmpl.title}`;
+      if (existingKeys.has(key)) continue;
+      existingKeys.add(key);
+      out.push({
+        id: randomUUID(),
+        title: tmpl.title,
+        description: tmpl.description,
+        workstream: tmpl.workstream,
+        status: "todo",
+        createdAt: new Date().toISOString(),
+        fromTemplate: true,
+      });
+    }
+  }
+  return out;
+}
+
+export async function addTask(
+  slug: string,
+  input: { title: string; workstream: Workstream; description?: string },
+): Promise<Engagement> {
+  const current = await readEngagementFile(slug);
+  if (!current) throw new Error("Engasjement ikke funnet");
+
+  const now = new Date().toISOString();
+  const task: Task = {
+    id: randomUUID(),
+    title: input.title,
+    description: input.description,
+    workstream: input.workstream,
+    status: "todo",
+    createdAt: now,
+    fromTemplate: false,
+  };
+
+  const next: Engagement = {
+    ...current,
+    tasks: [...current.tasks, task],
+    updatedAt: now,
+  };
+
+  await writeEngagementAtomic(next);
+  return next;
+}
+
+export async function updateTaskStatus(
+  slug: string,
+  taskId: string,
+  status: TaskStatus,
+): Promise<Engagement> {
+  const current = await readEngagementFile(slug);
+  if (!current) throw new Error("Engasjement ikke funnet");
+
+  const now = new Date().toISOString();
+  const next: Engagement = {
+    ...current,
+    tasks: current.tasks.map((t) =>
+      t.id === taskId
+        ? {
+            ...t,
+            status,
+            completedAt: status === "done" ? now : undefined,
+          }
+        : t,
+    ),
+    updatedAt: now,
+  };
+
+  await writeEngagementAtomic(next);
+  return next;
+}
+
+export async function deleteTask(
+  slug: string,
+  taskId: string,
+): Promise<Engagement> {
+  const current = await readEngagementFile(slug);
+  if (!current) throw new Error("Engasjement ikke funnet");
+
+  const next: Engagement = {
+    ...current,
+    tasks: current.tasks.filter((t) => t.id !== taskId),
+    updatedAt: new Date().toISOString(),
+  };
+
+  await writeEngagementAtomic(next);
+  return next;
+}
+
+export async function regenerateTemplateTasks(
+  slug: string,
+): Promise<Engagement> {
+  const current = await readEngagementFile(slug);
+  if (!current) throw new Error("Engasjement ikke funnet");
+
+  const generated = generateTasksFromTemplates(current.services, current.tasks);
+  if (generated.length === 0) return current;
+
+  const next: Engagement = {
+    ...current,
+    tasks: [...current.tasks, ...generated],
+    updatedAt: new Date().toISOString(),
+  };
+
+  await writeEngagementAtomic(next);
+  return next;
+}
+
+export async function addSubmission(
+  slug: string,
+  submission: Omit<FormSubmission, "id" | "submittedAt"> & {
+    id?: string;
+    submittedAt?: string;
+  },
+): Promise<Engagement> {
+  const current = await readEngagementFile(slug);
+  if (!current) throw new Error("Engasjement ikke funnet");
+
+  const now = new Date().toISOString();
+  const full: FormSubmission = {
+    id: submission.id ?? randomUUID(),
+    submittedAt: submission.submittedAt ?? now,
+    formType: submission.formType,
+    submittedBy: submission.submittedBy,
+    data: submission.data,
+  };
+
+  const next: Engagement = {
+    ...current,
+    submissions: [...current.submissions, full],
     updatedAt: now,
   };
 
