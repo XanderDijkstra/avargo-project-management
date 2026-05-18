@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { EngagementEditForm } from "@/components/engagement-edit-form";
+import { FormLinkGenerator } from "@/components/form-link-generator";
 import { LinksPanel } from "@/components/links-panel";
 import { NotesPanel } from "@/components/notes-panel";
 import { StageSelector } from "@/components/stage-selector";
+import { SubmissionsPanel } from "@/components/submissions-panel";
 import { TasksPanel } from "@/components/tasks-panel";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -148,6 +150,26 @@ export default async function EngagementDetailPage({
           )}
 
           <TasksPanel slug={engagement.slug} tasks={engagement.tasks} />
+
+          <section className="space-y-4">
+            <h2>Skjemaer</h2>
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-gray-700">
+                Send skjema
+              </h3>
+              <p className="text-xs text-gray-500">
+                Velg type og kopier lenken til kunden. Skjemaet pre-utfylles
+                med kontaktinformasjon fra dette engasjementet.
+              </p>
+              <FormLinkGenerator slug={engagement.slug} />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-gray-700">
+                Mottatte skjemaer
+              </h3>
+              <SubmissionsPanel submissions={engagement.submissions} />
+            </div>
+          </section>
 
           <NotesPanel slug={engagement.slug} notes={engagement.notes} />
         </div>
