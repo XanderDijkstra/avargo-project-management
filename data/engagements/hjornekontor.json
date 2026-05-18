@@ -1,0 +1,27 @@
+{
+  "id": "01938a4f-7c2e-7000-9000-000000000001",
+  "slug": "hjornekontor",
+  "companyName": "Hjørnekontor AS",
+  "contactName": "Rikke",
+  "contactEmail": "rikke@riktigregnskap.no",
+  "source": "Riktig Regnskap",
+  "sourceContact": "Rikke",
+  "services": ["website", "gbp", "google-ads", "meta-ads", "linkedin"],
+  "stage": "scoping",
+  "notes": [
+    {
+      "id": "01938a4f-7c2e-7000-9000-000000000002",
+      "date": "2026-05-18T10:00:00Z",
+      "content": "Pilotprosjekt. Eiendomsselskap eid av Frode, Mattis, Anniken og Rikke. Rikke fungerer som kunde-stedfortreder. Full pakke. Skal teste produktifisert leveranse og notere faktisk tidsbruk for fastpris-benchmark."
+    }
+  ],
+  "links": [
+    { "label": "Domene", "url": "https://hjornekontor.no" }
+  ],
+  "stageHistory": [
+    { "stage": "henvisning-mottatt", "enteredAt": "2026-05-15T12:00:00Z" },
+    { "stage": "scoping", "enteredAt": "2026-05-18T10:00:00Z" }
+  ],
+  "createdAt": "2026-05-15T12:00:00Z",
+  "updatedAt": "2026-05-18T10:00:00Z"
+}
