@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import {
   changeStage as changeStageData,
   createEngagement as createEngagementData,
+  deleteEngagement as deleteEngagementData,
 } from "@/lib/data";
 import {
   ALL_SERVICES,
@@ -88,4 +89,10 @@ export async function changeStageFromKanbanAction(
   await changeStageData(slug, newStage);
   revalidatePath("/");
   revalidatePath(`/clients/${slug}`);
+}
+
+export async function deleteClientFromListAction(slug: string) {
+  await deleteEngagementData(slug);
+  revalidatePath("/clients");
+  revalidatePath("/");
 }

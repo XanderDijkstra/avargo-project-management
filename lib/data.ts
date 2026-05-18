@@ -81,6 +81,14 @@ export async function getEngagement(slug: string): Promise<Engagement | null> {
   return readEngagement(slug);
 }
 
+export async function deleteEngagement(slug: string): Promise<void> {
+  const { error } = await getSupabase()
+    .from(ENGAGEMENTS_TABLE)
+    .delete()
+    .eq("slug", slug);
+  if (error) throw error;
+}
+
 export async function createEngagement(
   input: NewEngagementInput,
 ): Promise<Engagement> {

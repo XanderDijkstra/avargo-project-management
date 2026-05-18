@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ClientRowDelete } from "@/components/client-row-delete";
 import { SetupError } from "@/components/setup-error";
 import { listEngagements } from "@/lib/data";
 import {
@@ -159,6 +160,7 @@ export default async function EngagementsPage({
                       : ""}
                   </Link>
                 </th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -196,6 +198,12 @@ export default async function EngagementsPage({
                   </td>
                   <td className="px-4 py-3 text-gray-500">
                     {formatDate(e.updatedAt)}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <ClientRowDelete
+                      slug={e.slug}
+                      companyName={e.companyName}
+                    />
                   </td>
                 </tr>
               ))}

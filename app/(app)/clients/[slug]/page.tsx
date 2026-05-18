@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DeleteClientButton } from "@/components/delete-client-button";
 import { EngagementEditForm } from "@/components/engagement-edit-form";
 import { FormLinkGenerator } from "@/components/form-link-generator";
 import { LinksPanel } from "@/components/links-panel";
@@ -55,6 +56,10 @@ export default async function EngagementDetailPage({
         <div className="flex items-center gap-2">
           <StageSelector slug={engagement.slug} current={engagement.stage} />
           <EngagementEditForm engagement={engagement} />
+          <DeleteClientButton
+            slug={engagement.slug}
+            companyName={engagement.companyName}
+          />
         </div>
       </div>
 

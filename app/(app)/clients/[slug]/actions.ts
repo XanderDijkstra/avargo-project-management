@@ -1,12 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import {
   addLink as addLinkData,
   addNote as addNoteData,
   addTask as addTaskData,
   changeStage as changeStageData,
+  deleteEngagement as deleteEngagementData,
   deleteTask as deleteTaskData,
   regenerateTemplateTasks as regenerateTemplateTasksData,
   removeLink as removeLinkData,
@@ -125,4 +127,11 @@ export async function deleteTaskAction(slug: string, taskId: string) {
 export async function regenerateTemplateTasksAction(slug: string) {
   await regenerateTemplateTasksData(slug);
   revalidatePath(`/clients/${slug}`);
+}
+
+export async function deleteClientAction(slug: string) {
+  await deleteEngagementData(slug);
+  revalidatePath("/");
+  revalidatePath("/clients");
+  redirect("/clients");
 }
