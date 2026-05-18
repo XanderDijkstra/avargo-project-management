@@ -7,7 +7,7 @@ import {
   deleteTaskAction,
   regenerateTemplateTasksAction,
   updateTaskStatusAction,
-} from "@/app/engagements/[slug]/actions";
+} from "@/app/(app)/engagements/[slug]/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -1,4 +1,4 @@
-import { addNoteAction } from "@/app/engagements/[slug]/actions";
+import { addNoteAction } from "@/app/(app)/engagements/[slug]/actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Note } from "@/lib/types";

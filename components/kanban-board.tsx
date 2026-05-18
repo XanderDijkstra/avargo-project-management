@@ -11,7 +11,7 @@ import {
 } from "@dnd-kit/core";
 
 import { EngagementCard } from "@/components/engagement-card";
-import { changeStageFromKanbanAction } from "@/app/actions";
+import { changeStageFromKanbanAction } from "@/app/(app)/actions";
 import {
   KANBAN_STAGES,
   SECONDARY_STAGES,
