@@ -5,16 +5,28 @@ import { revalidatePath } from "next/cache";
 import {
   addLink as addLinkData,
   addNote as addNoteData,
+  addTask as addTaskData,
   changeStage as changeStageData,
+  deleteTask as deleteTaskData,
+  regenerateTemplateTasks as regenerateTemplateTasksData,
   removeLink as removeLinkData,
   updateEngagement as updateEngagementData,
+  updateTaskStatus as updateTaskStatusData,
 } from "@/lib/data";
-import { ALL_SERVICES, ALL_SOURCES, ALL_STAGES } from "@/lib/constants";
+import {
+  ALL_SERVICES,
+  ALL_SOURCES,
+  ALL_STAGES,
+  ALL_TASK_STATUSES,
+  ALL_WORKSTREAMS,
+} from "@/lib/constants";
 import type {
   Engagement,
   PipelineStage,
   Service,
   Source,
+  TaskStatus,
+  Workstream,
 } from "@/lib/types";
 
 export async function addNoteAction(slug: string, formData: FormData) {
@@ -82,5 +94,35 @@ export async function updateEngagementAction(
   };
 
   await updateEngagementData(slug, patch);
+  revalidatePath(`/engagements/${slug}`);
+}
+
+export async function addTaskAction(slug: string, formData: FormData) {
+  const title = ((formData.get("title") as string) || "").trim();
+  const description =
+    ((formData.get("description") as string) || "").trim() || undefined;
+  const workstream = formData.get("workstream") as Workstream;
+  if (!title || !ALL_WORKSTREAMS.includes(workstream)) return;
+  await addTaskData(slug, { title, description, workstream });
+  revalidatePath(`/engagements/${slug}`);
+}
+
+export async function updateTaskStatusAction(
+  slug: string,
+  taskId: string,
+  status: TaskStatus,
+) {
+  if (!ALL_TASK_STATUSES.includes(status)) return;
+  await updateTaskStatusData(slug, taskId, status);
+  revalidatePath(`/engagements/${slug}`);
+}
+
+export async function deleteTaskAction(slug: string, taskId: string) {
+  await deleteTaskData(slug, taskId);
+  revalidatePath(`/engagements/${slug}`);
+}
+
+export async function regenerateTemplateTasksAction(slug: string) {
+  await regenerateTemplateTasksData(slug);
   revalidatePath(`/engagements/${slug}`);
 }

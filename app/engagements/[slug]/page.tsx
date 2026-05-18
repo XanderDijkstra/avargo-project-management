@@ -5,6 +5,7 @@ import { EngagementEditForm } from "@/components/engagement-edit-form";
 import { LinksPanel } from "@/components/links-panel";
 import { NotesPanel } from "@/components/notes-panel";
 import { StageSelector } from "@/components/stage-selector";
+import { TasksPanel } from "@/components/tasks-panel";
 import { Badge } from "@/components/ui/badge";
 import {
   SERVICE_LABELS,
@@ -145,6 +146,8 @@ export default async function EngagementDetailPage({
               </dl>
             </section>
           )}
+
+          <TasksPanel slug={engagement.slug} tasks={engagement.tasks} />
 
           <NotesPanel slug={engagement.slug} notes={engagement.notes} />
         </div>
