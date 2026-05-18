@@ -48,7 +48,7 @@ function Column({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex flex-col rounded-lg border border-gray-200 bg-gray-50/50 p-3",
+        "flex flex-col rounded-lg border border-gray-200 bg-white p-3 shadow-sm",
         collapsed ? "min-w-[200px]" : "min-w-[260px]",
         isOver && "ring-2 ring-brand ring-offset-2",
       )}

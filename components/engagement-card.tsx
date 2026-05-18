@@ -30,7 +30,7 @@ export function EngagementCard({ engagement }: { engagement: Engagement }) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "rounded-md border border-gray-200 bg-white p-3 text-sm shadow-sm",
+        "cursor-grab rounded-md border border-gray-200 bg-gray-50 p-3 text-sm transition-colors hover:border-gray-300 hover:bg-white active:cursor-grabbing",
         isDragging && "opacity-50",
       )}
       {...attributes}
