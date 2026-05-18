@@ -1,13 +1,21 @@
 import Link from "next/link";
 
 import { KanbanBoard } from "@/components/kanban-board";
+import { SetupError } from "@/components/setup-error";
 import { Button } from "@/components/ui/button";
 import { listEngagements } from "@/lib/data";
+import type { Engagement } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const engagements = await listEngagements();
+  let engagements: Engagement[] = [];
+  let error: string | null = null;
+  try {
+    engagements = await listEngagements();
+  } catch (err) {
+    error = err instanceof Error ? err.message : String(err);
+  }
 
   return (
     <div className="space-y-6">
@@ -17,7 +25,11 @@ export default async function Home() {
           <Link href="/engagements/new">Ny engasjement</Link>
         </Button>
       </div>
-      <KanbanBoard engagements={engagements} />
+      {error ? (
+        <SetupError message={error} />
+      ) : (
+        <KanbanBoard engagements={engagements} />
+      )}
     </div>
   );
 }

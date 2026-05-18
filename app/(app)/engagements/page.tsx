@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SetupError } from "@/components/setup-error";
 import { listEngagements } from "@/lib/data";
 import {
   ALL_SOURCES,
@@ -12,7 +13,7 @@ import {
   STAGE_LABELS,
 } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
-import type { PipelineStage, Source } from "@/lib/types";
+import type { Engagement, PipelineStage, Source } from "@/lib/types";
 
 type SearchParams = {
   stage?: string;
@@ -27,7 +28,14 @@ export default async function EngagementsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
-  const engagements = await listEngagements();
+
+  let engagements: Engagement[] = [];
+  let dataError: string | null = null;
+  try {
+    engagements = await listEngagements();
+  } catch (err) {
+    dataError = err instanceof Error ? err.message : String(err);
+  }
 
   const stageFilter = sp.stage as PipelineStage | "all" | undefined;
   const sourceFilter = sp.source as Source | "all" | undefined;
@@ -71,6 +79,8 @@ export default async function EngagementsPage({
           <Link href="/engagements/new">Ny engasjement</Link>
         </Button>
       </div>
+
+      {dataError && <SetupError message={dataError} />}
 
       <form className="flex flex-wrap items-end gap-3" method="get">
         <div className="flex flex-col gap-1">
