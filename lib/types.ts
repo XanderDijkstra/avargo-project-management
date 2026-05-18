@@ -102,3 +102,22 @@ export type NewEngagementInput = {
     meta?: number;
   };
 };
+
+// Editable task template (one row per service in Supabase).
+export type ServiceTemplate = {
+  service: Service;
+  templates: {
+    title: string;
+    description?: string;
+  }[];
+};
+
+// One row in the hour register.
+export type HourEntry = {
+  id: string;
+  clientSlug: string;
+  date: string;        // ISO date (YYYY-MM-DD)
+  hours: number;
+  note?: string;
+  createdAt: string;   // ISO 8601 timestamp
+};

@@ -5,17 +5,25 @@ import { randomUUID } from "node:crypto";
 import type {
   Engagement,
   FormSubmission,
+  HourEntry,
   Link,
   NewEngagementInput,
   PipelineStage,
   Service,
+  ServiceTemplate,
   Task,
   TaskStatus,
   Workstream,
 } from "./types";
 import { slugify } from "./utils";
 import { TASK_TEMPLATES } from "./task-templates";
-import { ENGAGEMENTS_TABLE, getSupabase } from "./supabase";
+import { ALL_SERVICES } from "./constants";
+import {
+  ENGAGEMENTS_TABLE,
+  HOUR_ENTRIES_TABLE,
+  SERVICE_TEMPLATES_TABLE,
+  getSupabase,
+} from "./supabase";
 
 type Row = {
   slug: string;
@@ -217,7 +225,10 @@ export async function changeStage(
 
   // Fire template tasks only on transition INTO "bygging"
   if (newStage === "bygging" && previousStage !== "bygging") {
-    const generated = generateTasksFromTemplates(next.services, next.tasks);
+    const generated = await generateTasksFromTemplates(
+      next.services,
+      next.tasks,
+    );
     next.tasks = [...next.tasks, ...generated];
   }
 
@@ -225,28 +236,51 @@ export async function changeStage(
   return next;
 }
 
-function generateTasksFromTemplates(
+// Pull templates for the given services from Supabase. Falls back to the
+// hardcoded TASK_TEMPLATES if the row is missing (e.g. setup.sql not run yet
+// for a new service). Returns synthesised Task objects, skipping any that
+// already exist on the client (matched by workstream:title).
+async function generateTasksFromTemplates(
   services: Service[],
   existingTasks: Task[],
-): Task[] {
+): Promise<Task[]> {
   const existingKeys = new Set(
     existingTasks
       .filter((t) => t.fromTemplate)
       .map((t) => `${t.workstream}:${t.title}`),
   );
 
+  const { data, error } = await getSupabase()
+    .from(SERVICE_TEMPLATES_TABLE)
+    .select("service,templates")
+    .in("service", services);
+  if (error) throw error;
+
+  const fromDb = new Map<Service, { title: string; description?: string }[]>();
+  for (const row of (data ?? []) as Array<{
+    service: Service;
+    templates: { title: string; description?: string }[];
+  }>) {
+    fromDb.set(row.service, row.templates ?? []);
+  }
+
   const out: Task[] = [];
   for (const service of services) {
-    const templates = TASK_TEMPLATES[service] ?? [];
+    const templates =
+      fromDb.get(service) ??
+      (TASK_TEMPLATES[service] ?? []).map(({ title, description }) => ({
+        title,
+        description,
+      }));
     for (const tmpl of templates) {
-      const key = `${tmpl.workstream}:${tmpl.title}`;
+      const key = `${service}:${tmpl.title}`;
       if (existingKeys.has(key)) continue;
       existingKeys.add(key);
       out.push({
         id: randomUUID(),
         title: tmpl.title,
         description: tmpl.description,
-        workstream: tmpl.workstream,
+        workstream: service,
         status: "todo",
         createdAt: new Date().toISOString(),
         fromTemplate: true,
@@ -334,7 +368,10 @@ export async function regenerateTemplateTasks(
   const current = await readEngagement(slug);
   if (!current) throw new Error("Klient ikke funnet");
 
-  const generated = generateTasksFromTemplates(current.services, current.tasks);
+  const generated = await generateTasksFromTemplates(
+    current.services,
+    current.tasks,
+  );
   if (generated.length === 0) return current;
 
   const next: Engagement = {
@@ -374,4 +411,142 @@ export async function addSubmission(
 
   await writeEngagement(next);
   return next;
+}
+
+// ---------- Service templates ----------
+
+export async function listServiceTemplates(): Promise<ServiceTemplate[]> {
+  const { data, error } = await getSupabase()
+    .from(SERVICE_TEMPLATES_TABLE)
+    .select("service,templates");
+  if (error) throw error;
+
+  const byService = new Map<Service, ServiceTemplate["templates"]>();
+  for (const row of (data ?? []) as Array<{
+    service: Service;
+    templates: ServiceTemplate["templates"];
+  }>) {
+    byService.set(row.service, row.templates ?? []);
+  }
+
+  // Always return one entry per service so the UI can render even when a row
+  // is missing in the DB.
+  return ALL_SERVICES.map((service) => ({
+    service,
+    templates: byService.get(service) ?? [],
+  }));
+}
+
+export async function getServiceTemplate(
+  service: Service,
+): Promise<ServiceTemplate> {
+  const { data, error } = await getSupabase()
+    .from(SERVICE_TEMPLATES_TABLE)
+    .select("service,templates")
+    .eq("service", service)
+    .maybeSingle<{ service: Service; templates: ServiceTemplate["templates"] }>();
+  if (error) throw error;
+  return {
+    service,
+    templates: data?.templates ?? [],
+  };
+}
+
+async function writeServiceTemplate(tpl: ServiceTemplate): Promise<void> {
+  const { error } = await getSupabase()
+    .from(SERVICE_TEMPLATES_TABLE)
+    .upsert(
+      {
+        service: tpl.service,
+        templates: tpl.templates,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "service" },
+    );
+  if (error) throw error;
+}
+
+export async function addServiceTemplate(
+  service: Service,
+  template: { title: string; description?: string },
+): Promise<ServiceTemplate> {
+  const current = await getServiceTemplate(service);
+  const next: ServiceTemplate = {
+    service,
+    templates: [...current.templates, template],
+  };
+  await writeServiceTemplate(next);
+  return next;
+}
+
+export async function removeServiceTemplate(
+  service: Service,
+  index: number,
+): Promise<ServiceTemplate> {
+  const current = await getServiceTemplate(service);
+  const next: ServiceTemplate = {
+    service,
+    templates: current.templates.filter((_, i) => i !== index),
+  };
+  await writeServiceTemplate(next);
+  return next;
+}
+
+// ---------- Hour entries ----------
+
+type HourEntryRow = {
+  id: string;
+  client_slug: string;
+  entry_date: string;
+  hours: number;
+  note: string | null;
+  created_at: string;
+};
+
+function rowToHourEntry(r: HourEntryRow): HourEntry {
+  return {
+    id: r.id,
+    clientSlug: r.client_slug,
+    date: r.entry_date,
+    hours: Number(r.hours),
+    note: r.note ?? undefined,
+    createdAt: r.created_at,
+  };
+}
+
+export async function listHourEntries(): Promise<HourEntry[]> {
+  const { data, error } = await getSupabase()
+    .from(HOUR_ENTRIES_TABLE)
+    .select("id,client_slug,entry_date,hours,note,created_at")
+    .order("entry_date", { ascending: false });
+  if (error) throw error;
+  return ((data ?? []) as HourEntryRow[]).map(rowToHourEntry);
+}
+
+export async function addHourEntry(input: {
+  clientSlug: string;
+  date: string;
+  hours: number;
+  note?: string;
+}): Promise<HourEntry> {
+  const { data, error } = await getSupabase()
+    .from(HOUR_ENTRIES_TABLE)
+    .insert({
+      client_slug: input.clientSlug,
+      entry_date: input.date,
+      hours: input.hours,
+      note: input.note ?? null,
+    })
+    .select("id,client_slug,entry_date,hours,note,created_at")
+    .single<HourEntryRow>();
+  if (error) throw error;
+  return rowToHourEntry(data);
+}
+
+export async function deleteHourEntry(id: string): Promise<void> {
+  const { error } = await getSupabase()
+    .from(HOUR_ENTRIES_TABLE)
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
 }

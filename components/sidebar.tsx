@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   BookOpen,
   KanbanSquare,
+  Layers,
   type LucideIcon,
   Users,
 } from "lucide-react";
@@ -30,6 +31,12 @@ const NAV: NavItem[] = [
     label: "Klienter",
     icon: Users,
     matches: (p) => p.startsWith("/clients"),
+  },
+  {
+    href: "/services",
+    label: "Tjenester",
+    icon: Layers,
+    matches: (p) => p.startsWith("/services"),
   },
   {
     href: "/sops",
