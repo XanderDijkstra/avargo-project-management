@@ -74,9 +74,9 @@ export default async function EngagementsPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1>Alle engasjementer</h1>
+        <h1>Alle klienter</h1>
         <Button asChild>
-          <Link href="/engagements/new">Ny engasjement</Link>
+          <Link href="/clients/new">Ny klient</Link>
         </Button>
       </div>
 
@@ -122,7 +122,7 @@ export default async function EngagementsPage({
 
       {filtered.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-12 text-center text-sm text-gray-500">
-          Ingen engasjementer matcher filteret.
+          Ingen klienter matcher filteret.
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
@@ -166,7 +166,7 @@ export default async function EngagementsPage({
                 <tr key={e.slug} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <Link
-                      href={`/engagements/${e.slug}`}
+                      href={`/clients/${e.slug}`}
                       className="font-medium text-gray-900 hover:text-brand"
                     >
                       {e.companyName}

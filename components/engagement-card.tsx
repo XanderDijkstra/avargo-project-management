@@ -38,7 +38,7 @@ export function EngagementCard({ engagement }: { engagement: Engagement }) {
     >
       <div className="flex items-start justify-between gap-2">
         <Link
-          href={`/engagements/${engagement.slug}`}
+          href={`/clients/${engagement.slug}`}
           className="font-medium text-gray-900 hover:text-brand"
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}

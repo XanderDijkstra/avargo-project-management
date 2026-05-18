@@ -121,7 +121,7 @@ export async function updateEngagement(
   patch: Partial<Engagement>,
 ): Promise<Engagement> {
   const current = await readEngagement(slug);
-  if (!current) throw new Error("Engasjement ikke funnet");
+  if (!current) throw new Error("Klient ikke funnet");
 
   const stageChanged = patch.stage && patch.stage !== current.stage;
 
@@ -150,7 +150,7 @@ export async function addNote(
   content: string,
 ): Promise<Engagement> {
   const current = await readEngagement(slug);
-  if (!current) throw new Error("Engasjement ikke funnet");
+  if (!current) throw new Error("Klient ikke funnet");
 
   const now = new Date().toISOString();
   const next: Engagement = {
@@ -165,7 +165,7 @@ export async function addNote(
 
 export async function addLink(slug: string, link: Link): Promise<Engagement> {
   const current = await readEngagement(slug);
-  if (!current) throw new Error("Engasjement ikke funnet");
+  if (!current) throw new Error("Klient ikke funnet");
 
   const next: Engagement = {
     ...current,
@@ -182,7 +182,7 @@ export async function removeLink(
   linkLabel: string,
 ): Promise<Engagement> {
   const current = await readEngagement(slug);
-  if (!current) throw new Error("Engasjement ikke funnet");
+  if (!current) throw new Error("Klient ikke funnet");
 
   const next: Engagement = {
     ...current,
@@ -199,7 +199,7 @@ export async function changeStage(
   newStage: PipelineStage,
 ): Promise<Engagement> {
   const current = await readEngagement(slug);
-  if (!current) throw new Error("Engasjement ikke funnet");
+  if (!current) throw new Error("Klient ikke funnet");
 
   if (current.stage === newStage) return current;
 
@@ -261,7 +261,7 @@ export async function addTask(
   input: { title: string; workstream: Workstream; description?: string },
 ): Promise<Engagement> {
   const current = await readEngagement(slug);
-  if (!current) throw new Error("Engasjement ikke funnet");
+  if (!current) throw new Error("Klient ikke funnet");
 
   const now = new Date().toISOString();
   const task: Task = {
@@ -290,7 +290,7 @@ export async function updateTaskStatus(
   status: TaskStatus,
 ): Promise<Engagement> {
   const current = await readEngagement(slug);
-  if (!current) throw new Error("Engasjement ikke funnet");
+  if (!current) throw new Error("Klient ikke funnet");
 
   const now = new Date().toISOString();
   const next: Engagement = {
@@ -316,7 +316,7 @@ export async function deleteTask(
   taskId: string,
 ): Promise<Engagement> {
   const current = await readEngagement(slug);
-  if (!current) throw new Error("Engasjement ikke funnet");
+  if (!current) throw new Error("Klient ikke funnet");
 
   const next: Engagement = {
     ...current,
@@ -332,7 +332,7 @@ export async function regenerateTemplateTasks(
   slug: string,
 ): Promise<Engagement> {
   const current = await readEngagement(slug);
-  if (!current) throw new Error("Engasjement ikke funnet");
+  if (!current) throw new Error("Klient ikke funnet");
 
   const generated = generateTasksFromTemplates(current.services, current.tasks);
   if (generated.length === 0) return current;
@@ -355,7 +355,7 @@ export async function addSubmission(
   },
 ): Promise<Engagement> {
   const current = await readEngagement(slug);
-  if (!current) throw new Error("Engasjement ikke funnet");
+  if (!current) throw new Error("Klient ikke funnet");
 
   const now = new Date().toISOString();
   const full: FormSubmission = {

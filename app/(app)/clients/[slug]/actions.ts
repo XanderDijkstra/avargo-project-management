@@ -33,7 +33,7 @@ export async function addNoteAction(slug: string, formData: FormData) {
   const content = (formData.get("content") as string | null)?.trim();
   if (!content) return;
   await addNoteData(slug, content);
-  revalidatePath(`/engagements/${slug}`);
+  revalidatePath(`/clients/${slug}`);
 }
 
 export async function addLinkAction(slug: string, formData: FormData) {
@@ -41,19 +41,19 @@ export async function addLinkAction(slug: string, formData: FormData) {
   const url = (formData.get("url") as string | null)?.trim();
   if (!label || !url) return;
   await addLinkData(slug, { label, url });
-  revalidatePath(`/engagements/${slug}`);
+  revalidatePath(`/clients/${slug}`);
 }
 
 export async function removeLinkAction(slug: string, label: string) {
   await removeLinkData(slug, label);
-  revalidatePath(`/engagements/${slug}`);
+  revalidatePath(`/clients/${slug}`);
 }
 
 export async function changeStageAction(slug: string, formData: FormData) {
   const stage = formData.get("stage") as PipelineStage;
   if (!ALL_STAGES.includes(stage)) return;
   await changeStageData(slug, stage);
-  revalidatePath(`/engagements/${slug}`);
+  revalidatePath(`/clients/${slug}`);
   revalidatePath("/");
 }
 
@@ -94,7 +94,7 @@ export async function updateEngagementAction(
   };
 
   await updateEngagementData(slug, patch);
-  revalidatePath(`/engagements/${slug}`);
+  revalidatePath(`/clients/${slug}`);
 }
 
 export async function addTaskAction(slug: string, formData: FormData) {
@@ -104,7 +104,7 @@ export async function addTaskAction(slug: string, formData: FormData) {
   const workstream = formData.get("workstream") as Workstream;
   if (!title || !ALL_WORKSTREAMS.includes(workstream)) return;
   await addTaskData(slug, { title, description, workstream });
-  revalidatePath(`/engagements/${slug}`);
+  revalidatePath(`/clients/${slug}`);
 }
 
 export async function updateTaskStatusAction(
@@ -114,15 +114,15 @@ export async function updateTaskStatusAction(
 ) {
   if (!ALL_TASK_STATUSES.includes(status)) return;
   await updateTaskStatusData(slug, taskId, status);
-  revalidatePath(`/engagements/${slug}`);
+  revalidatePath(`/clients/${slug}`);
 }
 
 export async function deleteTaskAction(slug: string, taskId: string) {
   await deleteTaskData(slug, taskId);
-  revalidatePath(`/engagements/${slug}`);
+  revalidatePath(`/clients/${slug}`);
 }
 
 export async function regenerateTemplateTasksAction(slug: string) {
   await regenerateTemplateTasksData(slug);
-  revalidatePath(`/engagements/${slug}`);
+  revalidatePath(`/clients/${slug}`);
 }

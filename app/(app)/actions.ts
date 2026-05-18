@@ -76,8 +76,8 @@ export async function createEngagementAction(formData: FormData) {
 
   const created = await createEngagementData(input);
   revalidatePath("/");
-  revalidatePath("/engagements");
-  redirect(`/engagements/${created.slug}`);
+  revalidatePath("/clients");
+  redirect(`/clients/${created.slug}`);
 }
 
 export async function changeStageFromKanbanAction(
@@ -87,5 +87,5 @@ export async function changeStageFromKanbanAction(
   if (!ALL_STAGES.includes(newStage)) return;
   await changeStageData(slug, newStage);
   revalidatePath("/");
-  revalidatePath(`/engagements/${slug}`);
+  revalidatePath(`/clients/${slug}`);
 }

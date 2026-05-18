@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 
-import { changeStageAction } from "@/app/(app)/engagements/[slug]/actions";
+import { changeStageAction } from "@/app/(app)/clients/[slug]/actions";
 import { Select } from "@/components/ui/select";
 import { ALL_STAGES, STAGE_LABELS } from "@/lib/constants";
 import type { PipelineStage } from "@/lib/types";

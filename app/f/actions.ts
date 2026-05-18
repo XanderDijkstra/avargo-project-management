@@ -49,7 +49,7 @@ export async function submitPublicFormAction(
   await addSubmission(created.slug, buildSubmission(schema, data));
 
   revalidatePath("/");
-  revalidatePath("/engagements");
+  revalidatePath("/clients");
   redirect(`/f/${formType}/thanks`);
 }
 
@@ -63,12 +63,12 @@ export async function submitEngagementFormAction(
   }
   const engagement = await getEngagement(slug);
   if (!engagement) {
-    throw new Error("Engasjement ikke funnet");
+    throw new Error("Klient ikke funnet");
   }
   const schema = FORM_SCHEMAS[formType];
   const data = parseFormSubmission(schema, formData);
   await addSubmission(slug, buildSubmission(schema, data));
 
-  revalidatePath(`/engagements/${slug}`);
+  revalidatePath(`/clients/${slug}`);
   redirect(`/f/${formType}/thanks`);
 }

@@ -18,7 +18,7 @@ export function FormLinkGenerator({ slug }: { slug: string }) {
     }
   }, []);
 
-  const url = `${origin || ""}/f/e/${slug}/${formType}`;
+  const url = `${origin || ""}/f/c/${slug}/${formType}`;
 
   const onCopy = async () => {
     try {

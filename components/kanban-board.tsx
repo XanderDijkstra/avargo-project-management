@@ -69,7 +69,7 @@ function Column({
       </div>
       <div className="flex flex-col gap-2">
         {engagements.length === 0 ? (
-          <p className="px-1 py-4 text-xs text-gray-400">Ingen engasjementer</p>
+          <p className="px-1 py-4 text-xs text-gray-400">Ingen klienter</p>
         ) : (
           engagements.map((e) => (
             <EngagementCard key={e.slug} engagement={e} />

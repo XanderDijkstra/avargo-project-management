@@ -26,10 +26,10 @@ const NAV: NavItem[] = [
     matches: (p) => p === "/",
   },
   {
-    href: "/engagements",
-    label: "Engasjementer",
+    href: "/clients",
+    label: "Klienter",
     icon: Users,
-    matches: (p) => p.startsWith("/engagements"),
+    matches: (p) => p.startsWith("/clients"),
   },
   {
     href: "/sops",

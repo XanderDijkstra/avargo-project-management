@@ -7,7 +7,7 @@ import {
   deleteTaskAction,
   regenerateTemplateTasksAction,
   updateTaskStatusAction,
-} from "@/app/(app)/engagements/[slug]/actions";
+} from "@/app/(app)/clients/[slug]/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -155,7 +155,7 @@ export function TasksPanel({
 
       {total === 0 ? (
         <p className="text-sm text-gray-500">
-          Ingen oppgaver enda. Oppgaver opprettes automatisk når engasjementet
+          Ingen oppgaver enda. Oppgaver opprettes automatisk når klienten
           går inn i stadiet «Bygging».
         </p>
       ) : (

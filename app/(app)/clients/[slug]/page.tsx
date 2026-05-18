@@ -40,10 +40,10 @@ export default async function EngagementDetailPage({
     <div className="space-y-6">
       <div>
         <Link
-          href="/engagements"
+          href="/clients"
           className="text-sm text-gray-500 hover:text-gray-700"
         >
-          ← Alle engasjementer
+          ← Alle klienter
         </Link>
       </div>
 
@@ -159,7 +159,7 @@ export default async function EngagementDetailPage({
               </h3>
               <p className="text-xs text-gray-500">
                 Velg type og kopier lenken til kunden. Skjemaet pre-utfylles
-                med kontaktinformasjon fra dette engasjementet.
+                med kontaktinformasjon fra dette klienten.
               </p>
               <FormLinkGenerator slug={engagement.slug} />
             </div>

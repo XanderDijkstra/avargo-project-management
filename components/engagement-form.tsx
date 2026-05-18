@@ -108,7 +108,7 @@ export function EngagementForm() {
         <Button asChild variant="ghost">
           <Link href="/">Avbryt</Link>
         </Button>
-        <Button type="submit">Opprett engasjement</Button>
+        <Button type="submit">Opprett klient</Button>
       </div>
     </form>
   );

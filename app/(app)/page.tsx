@@ -22,7 +22,7 @@ export default async function Home() {
       <div className="flex items-center justify-between">
         <h1>Pipeline</h1>
         <Button asChild>
-          <Link href="/engagements/new">Ny engasjement</Link>
+          <Link href="/clients/new">Ny klient</Link>
         </Button>
       </div>
       {error ? (
