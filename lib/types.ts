@@ -3,7 +3,8 @@ export type Service =
   | "gbp"
   | "google-ads"
   | "meta-ads"
-  | "linkedin";
+  | "linkedin"
+  | "software";
 
 export type PipelineStage =
   | "henvisning-mottatt"
@@ -34,6 +35,31 @@ export type StageEntry = {
   enteredAt: string;
 };
 
+export type TaskStatus = "todo" | "doing" | "done" | "blocked";
+
+export type Workstream = Service | "general";
+
+export type Task = {
+  id: string;
+  title: string;
+  description?: string;
+  workstream: Workstream;
+  status: TaskStatus;
+  createdAt: string;
+  completedAt?: string;
+  fromTemplate: boolean;
+};
+
+export type FormType = "website" | "meta-ads" | "google-ads" | "software";
+
+export type FormSubmission = {
+  id: string;
+  formType: FormType;
+  submittedAt: string;
+  submittedBy?: string;
+  data: Record<string, unknown>;
+};
+
 export type Engagement = {
   id: string;
   slug: string;
@@ -54,6 +80,8 @@ export type Engagement = {
   notes: Note[];
   links: Link[];
   stageHistory: StageEntry[];
+  tasks: Task[];
+  submissions: FormSubmission[];
   createdAt: string;
   updatedAt: string;
 };

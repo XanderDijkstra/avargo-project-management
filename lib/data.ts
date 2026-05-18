@@ -25,7 +25,11 @@ function filePathFor(slug: string) {
 async function readEngagementFile(slug: string): Promise<Engagement | null> {
   try {
     const raw = await fs.readFile(filePathFor(slug), "utf8");
-    return JSON.parse(raw) as Engagement;
+    const parsed = JSON.parse(raw) as Engagement;
+    // Backfill v0.2 fields for engagements created under v0.1
+    if (!Array.isArray(parsed.tasks)) parsed.tasks = [];
+    if (!Array.isArray(parsed.submissions)) parsed.submissions = [];
+    return parsed;
   } catch (err: unknown) {
     if (
       err &&
@@ -96,6 +100,8 @@ export async function createEngagement(
     notes: [],
     links: [],
     stageHistory: [{ stage: input.stage, enteredAt: now }],
+    tasks: [],
+    submissions: [],
     createdAt: now,
     updatedAt: now,
   };

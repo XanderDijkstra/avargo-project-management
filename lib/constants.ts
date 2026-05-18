@@ -1,4 +1,11 @@
-import type { PipelineStage, Service, Source } from "./types";
+import type {
+  FormType,
+  PipelineStage,
+  Service,
+  Source,
+  TaskStatus,
+  Workstream,
+} from "./types";
 
 export const STAGE_LABELS: Record<PipelineStage, string> = {
   "henvisning-mottatt": "Henvisning mottatt",
@@ -18,6 +25,7 @@ export const SERVICE_LABELS: Record<Service, string> = {
   "google-ads": "Google Ads",
   "meta-ads": "Meta Ads",
   "linkedin": "LinkedIn",
+  "software": "Programvare / Utvikling",
 };
 
 export const SOURCE_LABELS: Record<Source, string> = {
@@ -49,6 +57,7 @@ export const ALL_SERVICES: Service[] = [
   "google-ads",
   "meta-ads",
   "linkedin",
+  "software",
 ];
 
 export const ALL_SOURCES: Source[] = [
@@ -56,4 +65,52 @@ export const ALL_SOURCES: Source[] = [
   "Direct",
   "Referral",
   "Other",
+];
+
+export const WORKSTREAM_LABELS: Record<Workstream, string> = {
+  "website": "Nettside",
+  "gbp": "Google Bedriftsprofil",
+  "google-ads": "Google Ads",
+  "meta-ads": "Meta Ads",
+  "linkedin": "LinkedIn",
+  "software": "Programvare",
+  "general": "Generelt",
+};
+
+export const ALL_WORKSTREAMS: Workstream[] = [
+  "website",
+  "gbp",
+  "google-ads",
+  "meta-ads",
+  "linkedin",
+  "software",
+  "general",
+];
+
+export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
+  "todo": "Å gjøre",
+  "doing": "Pågår",
+  "done": "Ferdig",
+  "blocked": "Blokkert",
+};
+
+export const ALL_TASK_STATUSES: TaskStatus[] = [
+  "todo",
+  "doing",
+  "done",
+  "blocked",
+];
+
+export const FORM_TYPE_LABELS: Record<FormType, string> = {
+  "website": "Nettside",
+  "meta-ads": "Meta Ads",
+  "google-ads": "Google Ads",
+  "software": "Programvare / Utvikling",
+};
+
+export const ALL_FORM_TYPES: FormType[] = [
+  "website",
+  "meta-ads",
+  "google-ads",
+  "software",
 ];
