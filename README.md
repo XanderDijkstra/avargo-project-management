@@ -31,8 +31,11 @@ pnpm build
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY` (server-only — never `NEXT_PUBLIC_…`)
 3. In Supabase: create a project, open **SQL Editor**, paste and run
-   `supabase/setup.sql`. This creates the `engagements` table, the index,
-   enables RLS, and seeds Hjørnekontor.
+   `supabase/setup.sql`. This creates the `engagements`,
+   `service_templates`, and `hour_entries` tables, the indexes, enables
+   RLS, and seeds Hjørnekontor + the default task templates per service.
+   The script is idempotent — re-run it after pulling new code to pick up
+   any new tables.
 4. Trigger a deployment. The SOPs markdown ships with the build via
    `outputFileTracingIncludes` in `next.config.js`.
 
@@ -58,37 +61,51 @@ User-facing copy is in Norwegian; code/identifiers are in English.
 
 ## Routes
 
-App (with shared nav header):
+App (with shared sidebar):
 
 - `/` — kanban pipeline (drag cards between stages)
-- `/engagements` — table view with filtering and sorting
-- `/engagements/new` — create a new engagement
-- `/engagements/[slug]` — detail view with notes, links, tasks, submissions,
+- `/clients` — table view with filtering and sorting
+- `/clients/new` — create a new client
+- `/clients/[slug]` — detail view with notes, links, tasks, submissions,
   form-link generator, and stage history
+- `/services` — list of services with template counts
+- `/services/[service]` — edit task templates for a service (these fire
+  when a client enters "Bygging")
+- `/timeregister` — log hours per client, grouped by week and month
 - `/sops` — SOP index (cards)
 - `/sops/[slug]` — single SOP rendered from markdown
 
 Public (no app nav):
 
-- `/f/[formType]` — generic public onboarding form (creates a new engagement
+- `/f/[formType]` — generic public onboarding form (creates a new client
   on submit). Valid `formType`: `website`, `meta-ads`, `google-ads`,
   `software`
-- `/f/e/[slug]/[formType]` — per-engagement onboarding form (appends a
-  submission to an existing engagement). NOTE: the v0.2 spec listed this as
+- `/f/c/[slug]/[formType]` — per-client onboarding form (appends a
+  submission to an existing client). NOTE: the v0.2 spec listed this as
   `/f/[slug]/[formType]`, but Next.js disallows two routes that share a
-  dynamic parameter at the same depth with different names; the `e`
+  dynamic parameter at the same depth with different names; the `c`
   disambiguator keeps the structure flat while satisfying the router.
 - `/f/[formType]/thanks` — thank-you page shared by both submission flows
 
 ## Task templates
 
-When an engagement transitions **into** the `bygging` stage from any other
-stage, a set of pre-defined tasks is generated for each of the engagement's
-services. Templates live in `lib/task-templates.ts`. Re-entering `bygging`
-(e.g. after a stop in `pauset`) does NOT duplicate existing template tasks
-— matching is on `workstream:title`. A "Regenerer maler" button on the
-detail view re-runs the template logic manually if you added services after
-already being in `bygging`.
+When a client transitions **into** the `bygging` stage from any other
+stage, a set of pre-defined tasks is generated for each of the client's
+services. Templates are stored in the `service_templates` Supabase table
+(seeded by `supabase/setup.sql`) and editable from the **Tjenester** tab
+in the app. The hardcoded `lib/task-templates.ts` is a fallback used only
+when a service has no row in the database.
+
+Re-entering `bygging` (e.g. after a stop in `pauset`) does NOT duplicate
+existing template tasks — matching is on `workstream:title`. A "Regenerer
+maler" button on the client detail view re-runs the template logic
+manually if you added services after already being in `bygging`.
+
+## Timeregister
+
+`/timeregister` lets you log hours per client with an optional note. The
+list is grouped by month and week with running totals — handy for batching
+work into invoices. Data lives in the `hour_entries` Supabase table.
 
 ## SOPs
 

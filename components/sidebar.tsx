@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BookOpen,
+  Clock,
   KanbanSquare,
   Layers,
   type LucideIcon,
@@ -37,6 +38,12 @@ const NAV: NavItem[] = [
     label: "Tjenester",
     icon: Layers,
     matches: (p) => p.startsWith("/services"),
+  },
+  {
+    href: "/timeregister",
+    label: "Timeregister",
+    icon: Clock,
+    matches: (p) => p.startsWith("/timeregister"),
   },
   {
     href: "/sops",
