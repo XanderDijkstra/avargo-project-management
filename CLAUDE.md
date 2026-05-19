@@ -6,7 +6,11 @@
   Web sessions still start on a `claude/<slug>` branch, so the flow is:
   1. Commit on the session branch.
   2. `git push origin <session-branch>:main` (fast-forward into main).
-  3. If a PR was opened earlier in the session, it will auto-close as merged.
+  3. **Also** push to `claude/avargo-v0.2-addendum-19gXm` — Vercel's
+     production branch is set to that, not `main`, so pushes to `main`
+     alone only create preview deployments. Mirror with
+     `git push origin <session-branch>:claude/avargo-v0.2-addendum-19gXm`.
+  4. If a PR was opened earlier in the session, it will auto-close as merged.
 - Skip creating a draft PR unless the user explicitly asks for review.
 
 ## Stack
