@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ClientDashboard } from "@/components/client-dashboard";
+import { ClientPageTabs } from "@/components/client-page-tabs";
 import { DeleteClientButton } from "@/components/delete-client-button";
 import { EngagementEditForm } from "@/components/engagement-edit-form";
 import { FormLinkGenerator } from "@/components/form-link-generator";
@@ -8,7 +10,7 @@ import { LinksPanel } from "@/components/links-panel";
 import { NotesPanel } from "@/components/notes-panel";
 import { StageSelector } from "@/components/stage-selector";
 import { SubmissionsPanel } from "@/components/submissions-panel";
-import { TasksPanel } from "@/components/tasks-panel";
+import { TaskKanban } from "@/components/task-kanban";
 import { Badge } from "@/components/ui/badge";
 import {
   SERVICE_LABELS,
@@ -37,31 +39,12 @@ export default async function EngagementDetailPage({
     b.enteredAt.localeCompare(a.enteredAt),
   );
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <Link
-          href="/clients"
-          className="text-sm text-gray-500 hover:text-gray-700"
-        >
-          ← Alle klienter
-        </Link>
-      </div>
+  const totalTasks = engagement.tasks.length;
+  const doneTasks = engagement.tasks.filter((t) => t.status === "done").length;
 
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h1>{engagement.companyName}</h1>
-          <Badge variant="brand">{STAGE_LABELS[engagement.stage]}</Badge>
-        </div>
-        <div className="flex items-center gap-2">
-          <StageSelector slug={engagement.slug} current={engagement.stage} />
-          <EngagementEditForm engagement={engagement} />
-          <DeleteClientButton
-            slug={engagement.slug}
-            companyName={engagement.companyName}
-          />
-        </div>
-      </div>
+  const infoContent = (
+    <div className="space-y-8">
+      <ClientDashboard engagement={engagement} />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_280px]">
         <div className="space-y-8">
@@ -154,8 +137,6 @@ export default async function EngagementDetailPage({
             </section>
           )}
 
-          <TasksPanel slug={engagement.slug} tasks={engagement.tasks} />
-
           <section className="space-y-4">
             <h2>Skjemaer</h2>
             <div className="space-y-2">
@@ -214,6 +195,49 @@ export default async function EngagementDetailPage({
           </section>
         </aside>
       </div>
+    </div>
+  );
+
+  const tasksContent = (
+    <TaskKanban
+      slug={engagement.slug}
+      tasks={engagement.tasks}
+      stage={engagement.stage}
+    />
+  );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <Link
+          href="/clients"
+          className="text-sm text-gray-500 hover:text-gray-700"
+        >
+          ← Alle klienter
+        </Link>
+      </div>
+
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h1>{engagement.companyName}</h1>
+          <Badge variant="brand">{STAGE_LABELS[engagement.stage]}</Badge>
+        </div>
+        <div className="flex items-center gap-2">
+          <StageSelector slug={engagement.slug} current={engagement.stage} />
+          <EngagementEditForm engagement={engagement} />
+          <DeleteClientButton
+            slug={engagement.slug}
+            companyName={engagement.companyName}
+          />
+        </div>
+      </div>
+
+      <ClientPageTabs
+        infoContent={infoContent}
+        tasksContent={tasksContent}
+        taskCount={totalTasks}
+        taskDone={doneTasks}
+      />
     </div>
   );
 }
