@@ -1,5 +1,6 @@
 import { HourEntriesTable } from "@/components/hour-entries-table";
-import { HourEntryForm } from "@/components/hour-entry-form";
+import { HourEntryDialog } from "@/components/hour-entry-dialog";
+import { HoursChart } from "@/components/hours-chart";
 import { SetupError } from "@/components/setup-error";
 import { listEngagements, listHourEntries } from "@/lib/data";
 import type { Engagement, HourEntry } from "@/lib/types";
@@ -60,9 +61,7 @@ function groupByMonthAndWeek(entries: HourEntry[]): MonthGroup[] {
     month.total += entry.hours;
   }
 
-  // Sort months desc by key (which is year-month and sorts lexicographically).
   const sorted = [...months.values()].sort((a, b) => b.key.localeCompare(a.key));
-  // Within each month, sort weeks desc by week number.
   for (const m of sorted) {
     m.weeks.sort((a, b) => b.key.localeCompare(a.key));
     for (const w of m.weeks) {
@@ -94,42 +93,52 @@ export default async function TimeregisterPage() {
     clientName: clientNameMap.get(e.clientSlug) ?? e.clientSlug,
   });
 
+  const canLog = !dataError && clients.length > 0;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1>Timeregister</h1>
           <p className="mt-1 text-sm text-gray-600">
             Loggfør timer per klient. Totaler oppsummeres per uke og måned.
           </p>
         </div>
-        {entries.length > 0 && (
-          <div className="text-right">
-            <p className="text-xs uppercase tracking-wide text-gray-500">
-              Totalt
-            </p>
-            <p className="text-2xl font-semibold tabular-nums text-gray-900">
-              {formatHours(totalAll)} t
-            </p>
-          </div>
+        {canLog && (
+          <HourEntryDialog
+            clients={clients.map((c) => ({
+              slug: c.slug,
+              companyName: c.companyName,
+            }))}
+          />
         )}
       </div>
 
       {dataError && <SetupError message={dataError} />}
 
+      {!dataError && clients.length === 0 && (
+        <p className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          Du må opprette en klient før du kan loggføre timer.
+        </p>
+      )}
+
       {!dataError && (
         <>
-          {clients.length === 0 ? (
-            <p className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-              Du må opprette en klient før du kan loggføre timer.
-            </p>
-          ) : (
-            <HourEntryForm
-              clients={clients.map((c) => ({
-                slug: c.slug,
-                companyName: c.companyName,
-              }))}
-            />
+          {entries.length > 0 && (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
+              <section className="flex flex-col justify-center rounded-lg border border-gray-200 bg-white p-5">
+                <p className="text-xs uppercase tracking-wide text-gray-500">
+                  Totalt loggført
+                </p>
+                <p className="mt-1 text-3xl font-semibold tabular-nums text-gray-900">
+                  {formatHours(totalAll)} t
+                </p>
+                <p className="mt-1 text-xs text-gray-500">
+                  {entries.length} oppføring{entries.length === 1 ? "" : "er"}
+                </p>
+              </section>
+              <HoursChart entries={entries} />
+            </div>
           )}
 
           {grouped.length === 0 ? (
