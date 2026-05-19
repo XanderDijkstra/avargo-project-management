@@ -7,9 +7,9 @@ import {
   addSubmission,
   createEngagement,
   getEngagement,
+  getFormSchema,
 } from "@/lib/data";
 import { ALL_FORM_TYPES } from "@/lib/constants";
-import { FORM_SCHEMAS } from "@/lib/form-schemas";
 import { buildSubmission, parseFormSubmission } from "@/lib/form-actions";
 import type { FormType } from "@/lib/types";
 
@@ -20,7 +20,7 @@ export async function submitPublicFormAction(
   if (!ALL_FORM_TYPES.includes(formType)) {
     throw new Error("Ukjent skjematype");
   }
-  const schema = FORM_SCHEMAS[formType];
+  const schema = await getFormSchema(formType);
   const data = parseFormSubmission(schema, formData);
 
   const companyName =
@@ -65,7 +65,7 @@ export async function submitEngagementFormAction(
   if (!engagement) {
     throw new Error("Klient ikke funnet");
   }
-  const schema = FORM_SCHEMAS[formType];
+  const schema = await getFormSchema(formType);
   const data = parseFormSubmission(schema, formData);
   await addSubmission(slug, buildSubmission(schema, data));
 

@@ -17,7 +17,7 @@ import {
   SOURCE_LABELS,
   STAGE_LABELS,
 } from "@/lib/constants";
-import { getEngagement } from "@/lib/data";
+import { getEngagement, listFormSchemas } from "@/lib/data";
 import { formatDate, formatNok } from "@/lib/utils";
 
 export default async function EngagementDetailPage({
@@ -26,7 +26,10 @@ export default async function EngagementDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const engagement = await getEngagement(slug);
+  const [engagement, formSchemas] = await Promise.all([
+    getEngagement(slug),
+    listFormSchemas(),
+  ]);
   if (!engagement) notFound();
 
   const hasFinancials =
@@ -153,7 +156,10 @@ export default async function EngagementDetailPage({
               <h3 className="text-sm font-medium text-gray-700">
                 Mottatte skjemaer
               </h3>
-              <SubmissionsPanel submissions={engagement.submissions} />
+              <SubmissionsPanel
+                submissions={engagement.submissions}
+                schemas={formSchemas}
+              />
             </div>
           </section>
 

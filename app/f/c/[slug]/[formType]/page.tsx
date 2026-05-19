@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { submitEngagementFormAction } from "@/app/f/actions";
 import { FormRenderer } from "@/components/form-renderer";
 import { ALL_FORM_TYPES } from "@/lib/constants";
-import { getEngagement } from "@/lib/data";
-import { FORM_SCHEMAS } from "@/lib/form-schemas";
+import { getEngagement, getFormSchema } from "@/lib/data";
 import type { FormType } from "@/lib/types";
 
 export default async function EngagementFormPage({
@@ -21,7 +20,7 @@ export default async function EngagementFormPage({
     notFound();
   }
 
-  const schema = FORM_SCHEMAS[formType as FormType];
+  const schema = await getFormSchema(formType as FormType);
 
   // Pre-fill matching fields from the engagement record.
   const defaults: Record<string, unknown> = {

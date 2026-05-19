@@ -1,10 +1,15 @@
 import { FORM_TYPE_LABELS } from "@/lib/constants";
-import { FORM_SCHEMAS } from "@/lib/form-schemas";
-import type { FormSubmission } from "@/lib/types";
+import type { FormSchema } from "@/lib/form-schemas";
+import type { FormSubmission, FormType } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
-function labelFor(formType: FormSubmission["formType"], fieldName: string) {
-  const schema = FORM_SCHEMAS[formType];
+function labelFor(
+  schemas: Record<FormType, FormSchema>,
+  formType: FormType,
+  fieldName: string,
+) {
+  const schema = schemas[formType];
+  if (!schema) return fieldName;
   for (const section of schema.sections) {
     for (const field of section.fields) {
       if (field.name === fieldName) return field.label;
@@ -21,8 +26,10 @@ function formatValue(v: unknown): string {
 
 export function SubmissionsPanel({
   submissions,
+  schemas,
 }: {
   submissions: FormSubmission[];
+  schemas: Record<FormType, FormSchema>;
 }) {
   if (submissions.length === 0) {
     return <p className="text-sm text-gray-500">Ingen mottatte skjemaer.</p>;
@@ -61,7 +68,7 @@ export function SubmissionsPanel({
                     className="contents md:[&>dt]:pt-0.5 md:[&>dd]:pb-2"
                   >
                     <dt className="text-gray-500">
-                      {labelFor(sub.formType, key)}
+                      {labelFor(schemas, sub.formType, key)}
                     </dt>
                     <dd className="whitespace-pre-wrap text-gray-900">
                       {formatValue(value)}

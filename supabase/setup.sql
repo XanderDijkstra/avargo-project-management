@@ -75,6 +75,23 @@ create index if not exists hour_entries_date_idx
 alter table public.hour_entries enable row level security;
 
 ------------------------------------------------------------
+-- 4. Onboarding form schemas — one row per form type.
+--    Title, description and a sections JSON array
+--    ([{title, fields: [{name, label, type, required?, ...}]}]).
+--    Missing rows fall back to the hardcoded defaults in
+--    lib/form-schemas.ts.
+------------------------------------------------------------
+create table if not exists public.form_schemas (
+  form_type    text primary key,
+  title        text not null,
+  description  text not null default '',
+  sections     jsonb not null default '[]'::jsonb,
+  updated_at   timestamptz not null default now()
+);
+
+alter table public.form_schemas enable row level security;
+
+------------------------------------------------------------
 -- Seed: Hjørnekontor pilot client.
 ------------------------------------------------------------
 insert into public.engagements (slug, data, updated_at)

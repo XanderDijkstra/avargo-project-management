@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import type {
   Engagement,
   FormSubmission,
+  FormType,
   HourEntry,
   Link,
   NewEngagementInput,
@@ -17,9 +18,11 @@ import type {
 } from "./types";
 import { slugify } from "./utils";
 import { TASK_TEMPLATES } from "./task-templates";
-import { ALL_SERVICES } from "./constants";
+import { ALL_FORM_TYPES, ALL_SERVICES } from "./constants";
+import { DEFAULT_FORM_SCHEMAS, type FormSchema } from "./form-schemas";
 import {
   ENGAGEMENTS_TABLE,
+  FORM_SCHEMAS_TABLE,
   HOUR_ENTRIES_TABLE,
   SERVICE_TEMPLATES_TABLE,
   getSupabase,
@@ -557,4 +560,86 @@ export async function deleteHourEntry(id: string): Promise<void> {
     .delete()
     .eq("id", id);
   if (error) throw error;
+}
+
+// ---------- Form schemas ----------
+
+type FormSchemaRow = {
+  form_type: FormType;
+  title: string;
+  description: string;
+  sections: FormSchema["sections"];
+};
+
+function rowToSchema(row: FormSchemaRow): FormSchema {
+  return {
+    formType: row.form_type,
+    title: row.title,
+    description: row.description,
+    sections: row.sections ?? [],
+  };
+}
+
+export async function listFormSchemas(): Promise<Record<FormType, FormSchema>> {
+  const { data, error } = await getSupabase()
+    .from(FORM_SCHEMAS_TABLE)
+    .select("form_type,title,description,sections");
+  if (error) throw error;
+
+  const fromDb = new Map<FormType, FormSchema>();
+  for (const row of (data ?? []) as FormSchemaRow[]) {
+    fromDb.set(row.form_type, rowToSchema(row));
+  }
+
+  const out = {} as Record<FormType, FormSchema>;
+  for (const ft of ALL_FORM_TYPES) {
+    out[ft] = fromDb.get(ft) ?? DEFAULT_FORM_SCHEMAS[ft];
+  }
+  return out;
+}
+
+export async function getFormSchema(formType: FormType): Promise<FormSchema> {
+  const { data, error } = await getSupabase()
+    .from(FORM_SCHEMAS_TABLE)
+    .select("form_type,title,description,sections")
+    .eq("form_type", formType)
+    .maybeSingle<FormSchemaRow>();
+  if (error) throw error;
+  return data ? rowToSchema(data) : DEFAULT_FORM_SCHEMAS[formType];
+}
+
+export async function updateFormSchema(
+  formType: FormType,
+  patch: Partial<Pick<FormSchema, "title" | "description" | "sections">>,
+): Promise<FormSchema> {
+  const current = await getFormSchema(formType);
+  const next: FormSchema = {
+    formType,
+    title: patch.title ?? current.title,
+    description: patch.description ?? current.description,
+    sections: patch.sections ?? current.sections,
+  };
+  const { error } = await getSupabase()
+    .from(FORM_SCHEMAS_TABLE)
+    .upsert(
+      {
+        form_type: formType,
+        title: next.title,
+        description: next.description,
+        sections: next.sections,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "form_type" },
+    );
+  if (error) throw error;
+  return next;
+}
+
+export async function resetFormSchema(formType: FormType): Promise<FormSchema> {
+  const { error } = await getSupabase()
+    .from(FORM_SCHEMAS_TABLE)
+    .delete()
+    .eq("form_type", formType);
+  if (error) throw error;
+  return DEFAULT_FORM_SCHEMAS[formType];
 }

@@ -25,7 +25,10 @@ export type FormSchema = {
   sections: { title: string; fields: FormField[] }[];
 };
 
-export const FORM_SCHEMAS: Record<FormType, FormSchema> = {
+// Hardcoded defaults — used as a fallback when no row exists in the
+// form_schemas Supabase table. Once a form is edited via the UI, that
+// edit is persisted to Supabase and wins over this default.
+export const DEFAULT_FORM_SCHEMAS: Record<FormType, FormSchema> = {
   website: {
     formType: "website",
     title: "Onboarding – Nettside",

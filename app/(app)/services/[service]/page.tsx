@@ -1,13 +1,27 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { FormSchemaEditor } from "@/components/form-schema-editor";
+import { ServicePageTabs } from "@/components/service-page-tabs";
 import { ServiceTemplatesEditor } from "@/components/service-templates-editor";
 import { SetupError } from "@/components/setup-error";
-import { ALL_SERVICES, SERVICE_LABELS } from "@/lib/constants";
-import { getServiceTemplate } from "@/lib/data";
-import type { Service, ServiceTemplate } from "@/lib/types";
+import {
+  ALL_FORM_TYPES,
+  ALL_SERVICES,
+  SERVICE_LABELS,
+} from "@/lib/constants";
+import { getFormSchema, getServiceTemplate } from "@/lib/data";
+import type { FormSchema } from "@/lib/form-schemas";
+import type { FormType, Service, ServiceTemplate } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+// Map a service to its onboarding form type (only those that share a name).
+function formTypeForService(service: Service): FormType | null {
+  return ALL_FORM_TYPES.includes(service as FormType)
+    ? (service as FormType)
+    : null;
+}
 
 export default async function ServiceDetailPage({
   params,
@@ -19,13 +33,35 @@ export default async function ServiceDetailPage({
     notFound();
   }
   const svc = service as Service;
+  const formType = formTypeForService(svc);
 
   let tpl: ServiceTemplate | null = null;
+  let schema: FormSchema | null = null;
   let dataError: string | null = null;
   try {
-    tpl = await getServiceTemplate(svc);
+    [tpl, schema] = await Promise.all([
+      getServiceTemplate(svc),
+      formType ? getFormSchema(formType) : Promise.resolve(null),
+    ]);
   } catch (err) {
     dataError = err instanceof Error ? err.message : String(err);
+  }
+
+  const tabs = [
+    {
+      key: "tasks",
+      label: "Mal-oppgaver",
+      content: tpl ? (
+        <ServiceTemplatesEditor service={svc} templates={tpl.templates} />
+      ) : null,
+    },
+  ];
+  if (formType && schema) {
+    tabs.push({
+      key: "form",
+      label: "Onboarding-skjema",
+      content: <FormSchemaEditor formType={formType} schema={schema} />,
+    });
   }
 
   return (
@@ -42,15 +78,18 @@ export default async function ServiceDetailPage({
       <div>
         <h1>{SERVICE_LABELS[svc]}</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Disse oppgavene kopieres til klienten ved overgang til «Bygging».
+          Mal-oppgaver kopieres til klienten ved overgang til «Bygging».
+          {formType
+            ? " Onboarding-skjemaet sendes til kunden for å samle inn informasjon."
+            : ""}
         </p>
       </div>
 
       {dataError ? (
         <SetupError message={dataError} />
-      ) : tpl ? (
-        <ServiceTemplatesEditor service={svc} templates={tpl.templates} />
-      ) : null}
+      ) : (
+        <ServicePageTabs tabs={tabs} />
+      )}
     </div>
   );
 }

@@ -27,3 +27,4 @@ export function getSupabase(): SupabaseClient {
 export const ENGAGEMENTS_TABLE = "engagements";
 export const SERVICE_TEMPLATES_TABLE = "service_templates";
 export const HOUR_ENTRIES_TABLE = "hour_entries";
+export const FORM_SCHEMAS_TABLE = "form_schemas";

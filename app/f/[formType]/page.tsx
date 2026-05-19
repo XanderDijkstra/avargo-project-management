@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { submitPublicFormAction } from "@/app/f/actions";
 import { FormRenderer } from "@/components/form-renderer";
 import { ALL_FORM_TYPES } from "@/lib/constants";
-import { FORM_SCHEMAS } from "@/lib/form-schemas";
+import { getFormSchema } from "@/lib/data";
 import type { FormType } from "@/lib/types";
 
 export default async function PublicFormPage({
@@ -16,7 +16,7 @@ export default async function PublicFormPage({
     notFound();
   }
 
-  const schema = FORM_SCHEMAS[formType as FormType];
+  const schema = await getFormSchema(formType as FormType);
   const action = submitPublicFormAction.bind(null, formType as FormType);
 
   return (
