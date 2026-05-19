@@ -9,7 +9,7 @@ export function NotesPanel({ slug, notes }: { slug: string; notes: Note[] }) {
   const addNote = addNoteAction.bind(null, slug);
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
       <h2>Notater</h2>
 
       {sorted.length === 0 ? (
@@ -19,7 +19,7 @@ export function NotesPanel({ slug, notes }: { slug: string; notes: Note[] }) {
           {sorted.map((note) => (
             <li
               key={note.id}
-              className="rounded-md border border-gray-200 bg-white p-4"
+              className="rounded-md border border-gray-200 bg-gray-50 p-4"
             >
               <div className="mb-1 text-xs text-gray-500">
                 {formatDateTime(note.date)}
@@ -32,7 +32,7 @@ export function NotesPanel({ slug, notes }: { slug: string; notes: Note[] }) {
         </ul>
       )}
 
-      <form action={addNote} className="space-y-2">
+      <form action={addNote} className="space-y-2 border-t border-gray-100 pt-4">
         <Textarea
           name="content"
           placeholder="Skriv et notat…"

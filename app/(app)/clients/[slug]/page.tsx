@@ -43,12 +43,12 @@ export default async function EngagementDetailPage({
   const doneTasks = engagement.tasks.filter((t) => t.status === "done").length;
 
   const infoContent = (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <ClientDashboard engagement={engagement} />
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_280px]">
-        <div className="space-y-8">
-          <section className="space-y-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
+        <div className="space-y-6">
+          <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
             <h2>Kontaktinformasjon</h2>
             <dl className="grid grid-cols-1 gap-y-2 text-sm md:grid-cols-[140px_1fr]">
               <dt className="text-gray-500">Kontakt</dt>
@@ -78,7 +78,7 @@ export default async function EngagementDetailPage({
             </dl>
           </section>
 
-          <section className="space-y-3">
+          <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
             <h2>Tjenester</h2>
             {engagement.services.length === 0 ? (
               <p className="text-sm text-gray-500">Ingen tjenester valgt.</p>
@@ -94,7 +94,7 @@ export default async function EngagementDetailPage({
           </section>
 
           {hasFinancials && (
-            <section className="space-y-3">
+            <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
               <h2>Økonomi</h2>
               <dl className="grid grid-cols-1 gap-y-2 text-sm md:grid-cols-[200px_1fr]">
                 {engagement.setupFee != null && (
@@ -137,7 +137,7 @@ export default async function EngagementDetailPage({
             </section>
           )}
 
-          <section className="space-y-4">
+          <section className="space-y-5 rounded-lg border border-gray-200 bg-white p-6">
             <h2>Skjemaer</h2>
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-gray-700">
@@ -149,7 +149,7 @@ export default async function EngagementDetailPage({
               </p>
               <FormLinkGenerator slug={engagement.slug} />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 border-t border-gray-100 pt-4">
               <h3 className="text-sm font-medium text-gray-700">
                 Mottatte skjemaer
               </h3>
@@ -161,7 +161,7 @@ export default async function EngagementDetailPage({
         </div>
 
         <aside className="space-y-6">
-          <section className="space-y-2">
+          <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-5">
             <h3>Kilde</h3>
             <p className="text-sm text-gray-900">
               {SOURCE_LABELS[engagement.source]}
@@ -175,7 +175,7 @@ export default async function EngagementDetailPage({
 
           <LinksPanel slug={engagement.slug} links={engagement.links} />
 
-          <section className="space-y-2">
+          <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-5">
             <h3>Stadiumshistorikk</h3>
             <ol className="space-y-1.5 text-sm">
               {history.map((h, i) => (

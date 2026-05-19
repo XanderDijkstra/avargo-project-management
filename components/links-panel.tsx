@@ -34,7 +34,7 @@ export function LinksPanel({
   };
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-5">
       <div className="flex items-center justify-between">
         <h3>Lenker</h3>
         {!adding && (
@@ -82,7 +82,7 @@ export function LinksPanel({
       )}
 
       {adding && (
-        <form action={onAdd} className="space-y-2 rounded-md border border-gray-200 p-3">
+        <form action={onAdd} className="space-y-2 rounded-md border border-gray-200 bg-gray-50 p-3">
           <Input name="label" placeholder="Etikett" required />
           <Input name="url" type="url" placeholder="https://…" required />
           <div className="flex justify-end gap-2">
