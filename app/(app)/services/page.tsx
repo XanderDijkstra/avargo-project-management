@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { SetupError } from "@/components/setup-error";
 import { Badge } from "@/components/ui/badge";
+import { ServiceDot } from "@/components/ui/service-badge";
 import { SERVICE_LABELS } from "@/lib/constants";
 import { listServiceTemplates } from "@/lib/data";
 import type { ServiceTemplate } from "@/lib/types";
@@ -39,7 +40,8 @@ export default async function ServicesIndexPage() {
                 className="flex h-full flex-col gap-2 rounded-lg border border-gray-200 bg-white p-5 transition-colors hover:border-brand"
               >
                 <div className="flex items-center justify-between">
-                  <h2 className="text-base font-medium text-gray-900">
+                  <h2 className="flex items-center gap-2 text-base font-medium text-gray-900">
+                    <ServiceDot service={t.service} className="h-2.5 w-2.5" />
                     {SERVICE_LABELS[t.service]}
                   </h2>
                   <Badge variant="muted">

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { ServiceDot } from "@/components/ui/service-badge";
 import {
   ALL_SERVICES,
   ALL_SOURCES,
@@ -74,6 +75,7 @@ export function EngagementForm() {
               className="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-1.5 text-sm"
             >
               <input type="checkbox" name={`service-${s}`} />
+              <ServiceDot service={s} />
               {SERVICE_LABELS[s]}
             </label>
           ))}

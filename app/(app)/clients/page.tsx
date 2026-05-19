@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ServiceBadge } from "@/components/ui/service-badge";
 import { ClientRowDelete } from "@/components/client-row-delete";
 import { SetupError } from "@/components/setup-error";
 import { listEngagements } from "@/lib/data";
@@ -9,7 +10,6 @@ import {
   ALL_SOURCES,
   ALL_STAGES,
   KANBAN_STAGES,
-  SERVICE_LABELS,
   SOURCE_LABELS,
   STAGE_LABELS,
 } from "@/lib/constants";
@@ -181,9 +181,7 @@ export default async function EngagementsPage({
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       {e.services.map((s) => (
-                        <Badge key={s} variant="muted">
-                          {SERVICE_LABELS[s]}
-                        </Badge>
+                        <ServiceBadge key={s} service={s} />
                       ))}
                     </div>
                   </td>

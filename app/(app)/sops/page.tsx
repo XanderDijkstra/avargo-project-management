@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-import { Badge } from "@/components/ui/badge";
-import { SERVICE_LABELS } from "@/lib/constants";
+import { ServiceBadge } from "@/components/ui/service-badge";
 import { listSops } from "@/lib/sops";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +33,7 @@ export default async function SopsIndexPage() {
                 </h2>
                 {sop.service && (
                   <div>
-                    <Badge variant="muted">{SERVICE_LABELS[sop.service]}</Badge>
+                    <ServiceBadge service={sop.service} />
                   </div>
                 )}
               </Link>

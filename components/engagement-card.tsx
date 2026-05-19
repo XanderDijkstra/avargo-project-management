@@ -3,11 +3,8 @@
 import { useDraggable } from "@dnd-kit/core";
 import Link from "next/link";
 
-import { Badge } from "@/components/ui/badge";
-import {
-  ALL_SERVICES,
-  SERVICE_LABELS,
-} from "@/lib/constants";
+import { ServiceBadge } from "@/components/ui/service-badge";
+import { ALL_SERVICES, SERVICE_LABELS } from "@/lib/constants";
 import type { Engagement } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -56,14 +53,11 @@ export function EngagementCard({ engagement }: { engagement: Engagement }) {
       {engagement.services.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">
           {engagement.services.map((s) => {
-            // Defensive: skip services that aren't in the lookup
             if (!ALL_SERVICES.includes(s) && !(s in SERVICE_LABELS)) {
               return null;
             }
             return (
-              <Badge key={s} variant="muted" className="text-[10px]">
-                {SERVICE_LABELS[s] ?? s}
-              </Badge>
+              <ServiceBadge key={s} service={s} className="text-[10px]" />
             );
           })}
         </div>

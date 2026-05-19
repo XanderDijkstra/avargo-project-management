@@ -2,8 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 
-import { Badge } from "@/components/ui/badge";
-import { SERVICE_LABELS } from "@/lib/constants";
+import { ServiceBadge } from "@/components/ui/service-badge";
 import { getSop, listSops } from "@/lib/sops";
 
 export const dynamic = "force-dynamic";
@@ -30,9 +29,7 @@ export default async function SopDetailPage({
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_240px]">
         <article className="prose-avargo max-w-none space-y-4">
-          {sop.service && (
-            <Badge variant="muted">{SERVICE_LABELS[sop.service]}</Badge>
-          )}
+          {sop.service && <ServiceBadge service={sop.service} />}
           <div className="space-y-4 text-sm leading-relaxed text-gray-800 [&_h1]:mb-2 [&_h1]:mt-2 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:mb-2 [&_h2]:mt-6 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mb-1 [&_h3]:mt-4 [&_h3]:text-base [&_h3]:font-medium [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:leading-relaxed [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-6">
             <ReactMarkdown>{sop.content}</ReactMarkdown>
           </div>

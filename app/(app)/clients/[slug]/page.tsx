@@ -12,11 +12,8 @@ import { StageSelector } from "@/components/stage-selector";
 import { SubmissionsPanel } from "@/components/submissions-panel";
 import { TaskKanban } from "@/components/task-kanban";
 import { Badge } from "@/components/ui/badge";
-import {
-  SERVICE_LABELS,
-  SOURCE_LABELS,
-  STAGE_LABELS,
-} from "@/lib/constants";
+import { ServiceBadge } from "@/components/ui/service-badge";
+import { SOURCE_LABELS, STAGE_LABELS } from "@/lib/constants";
 import { getEngagement, listFormSchemas } from "@/lib/data";
 import { formatDate, formatNok } from "@/lib/utils";
 
@@ -88,9 +85,7 @@ export default async function EngagementDetailPage({
             ) : (
               <div className="flex flex-wrap gap-1.5">
                 {engagement.services.map((s) => (
-                  <Badge key={s} variant="default">
-                    {SERVICE_LABELS[s]}
-                  </Badge>
+                  <ServiceBadge key={s} service={s} />
                 ))}
               </div>
             )}

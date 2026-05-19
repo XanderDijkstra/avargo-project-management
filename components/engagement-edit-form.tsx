@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { ServiceDot } from "@/components/ui/service-badge";
 import {
   ALL_SERVICES,
   ALL_SOURCES,
@@ -119,6 +120,7 @@ export function EngagementEditForm({ engagement }: { engagement: Engagement }) {
                 name={`service-${s}`}
                 defaultChecked={engagement.services.includes(s)}
               />
+              <ServiceDot service={s} />
               {SERVICE_LABELS[s]}
             </label>
           ))}
