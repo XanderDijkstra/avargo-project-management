@@ -1,6 +1,10 @@
-import { HourEntriesTable } from "@/components/hour-entries-table";
 import { HourEntryDialog } from "@/components/hour-entry-dialog";
 import { HoursChart } from "@/components/hours-chart";
+import {
+  MonthHoursCard,
+  type HourEntryRowData,
+  type MonthWeekGroup,
+} from "@/components/month-hours-card";
 import { SetupError } from "@/components/setup-error";
 import { listEngagements, listHourEntries } from "@/lib/data";
 import type { Engagement, HourEntry } from "@/lib/types";
@@ -13,24 +17,25 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type WeekGroup = {
-  key: string;
-  label: string;
-  entries: HourEntry[];
-  total: number;
-};
-
 type MonthGroup = {
   key: string;
   label: string;
-  weeks: WeekGroup[];
+  weeks: MonthWeekGroup[];
   total: number;
 };
 
-function groupByMonthAndWeek(entries: HourEntry[]): MonthGroup[] {
+function groupByMonthAndWeek(
+  entries: HourEntry[],
+  clientNameMap: Map<string, string>,
+): MonthGroup[] {
   const months = new Map<string, MonthGroup>();
 
   for (const entry of entries) {
+    const enriched: HourEntryRowData = {
+      ...entry,
+      clientName: clientNameMap.get(entry.clientSlug) ?? entry.clientSlug,
+    };
+
     const { year: my, month: mm } = isoMonth(entry.date);
     const monthKey = `${my}-${String(mm).padStart(2, "0")}`;
     let month = months.get(monthKey);
@@ -56,12 +61,14 @@ function groupByMonthAndWeek(entries: HourEntry[]): MonthGroup[] {
       };
       month.weeks.push(weekGroup);
     }
-    weekGroup.entries.push(entry);
+    weekGroup.entries.push(enriched);
     weekGroup.total += entry.hours;
     month.total += entry.hours;
   }
 
-  const sorted = [...months.values()].sort((a, b) => b.key.localeCompare(a.key));
+  const sorted = [...months.values()].sort((a, b) =>
+    b.key.localeCompare(a.key),
+  );
   for (const m of sorted) {
     m.weeks.sort((a, b) => b.key.localeCompare(a.key));
     for (const w of m.weeks) {
@@ -85,13 +92,9 @@ export default async function TimeregisterPage() {
     dataError = err instanceof Error ? err.message : String(err);
   }
 
-  const grouped = groupByMonthAndWeek(entries);
-  const totalAll = entries.reduce((sum, e) => sum + e.hours, 0);
   const clientNameMap = new Map(clients.map((c) => [c.slug, c.companyName]));
-  const enrich = (e: HourEntry) => ({
-    ...e,
-    clientName: clientNameMap.get(e.clientSlug) ?? e.clientSlug,
-  });
+  const grouped = groupByMonthAndWeek(entries, clientNameMap);
+  const totalAll = entries.reduce((sum, e) => sum + e.hours, 0);
 
   const canLog = !dataError && clients.length > 0;
 
@@ -146,35 +149,14 @@ export default async function TimeregisterPage() {
               Ingen timer loggført enda.
             </p>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-6">
               {grouped.map((month) => (
-                <section key={month.key} className="space-y-4">
-                  <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-                    <h2 className="capitalize">{month.label}</h2>
-                    <p className="text-sm tabular-nums text-gray-700">
-                      <span className="text-gray-500">Sum: </span>
-                      <span className="font-semibold text-gray-900">
-                        {formatHours(month.total)} t
-                      </span>
-                    </p>
-                  </div>
-
-                  {month.weeks.map((week) => (
-                    <div key={week.key} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium text-gray-700">
-                          {week.label}
-                        </h3>
-                        <p className="text-xs tabular-nums text-gray-500">
-                          {formatHours(week.total)} t
-                        </p>
-                      </div>
-                      <HourEntriesTable
-                        entries={week.entries.map(enrich)}
-                      />
-                    </div>
-                  ))}
-                </section>
+                <MonthHoursCard
+                  key={month.key}
+                  label={month.label}
+                  total={month.total}
+                  weeks={month.weeks}
+                />
               ))}
             </div>
           )}
